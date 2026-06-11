@@ -26,7 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    @Operation(summary = "List users", description = "Filter by role with ?role=ADMIN|STAFF|CLIENT")
+    @Operation(summary = "List users", description = "Filter by role with ?role=ADMIN|CLIENT")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers(
             @RequestParam(required = false) String role) {
         List<UserResponse> users = role != null

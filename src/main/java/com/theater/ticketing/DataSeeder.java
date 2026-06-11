@@ -24,10 +24,9 @@ public class DataSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         seed("admin",   "admin@theater.com",   "admin123",   UserRole.ADMIN);
-        seed("staff",   "staff@theater.com",   "staff123",   UserRole.STAFF);
         seed("client1", "client1@theater.com", "client123",  UserRole.CLIENT);
         seed("client2", "client2@theater.com", "client123",  UserRole.CLIENT);
-        log.info("Seeded default users (admin / staff / client1 / client2)");
+        log.info("Seeded default users (admin / client1 / client2)");
     }
 
     private void seed(String username, String email, String password, UserRole role) {

@@ -20,6 +20,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -59,17 +62,39 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 // Vouchers — /my must be declared BEFORE /** wildcard
                 .requestMatchers(HttpMethod.GET, "/api/v1/vouchers/my").hasRole("CLIENT")
-                .requestMatchers(HttpMethod.GET, "/api/v1/vouchers").hasAnyRole("ADMIN", "STAFF")
-                .requestMatchers(HttpMethod.GET, "/api/v1/vouchers/**").hasAnyRole("ADMIN", "STAFF")
-                .requestMatchers(HttpMethod.POST, "/api/v1/vouchers").hasAnyRole("ADMIN", "STAFF")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/vouchers/**").hasAnyRole("ADMIN", "STAFF")
-                // Bookings
+                .requestMatchers(HttpMethod.GET, "/api/v1/vouchers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/vouchers/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/vouchers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/vouchers/**").hasRole("ADMIN")
+                // Bookings — /my must be declared BEFORE /** wildcard
+                .requestMatchers(HttpMethod.GET, "/api/v1/bookings/my").hasRole("CLIENT")
+                .requestMatchers(HttpMethod.GET, "/api/v1/bookings").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/bookings/initiate").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/v1/bookings/confirm").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.POST, "/api/v1/bookings/confirm").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/bookings/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/bookings/**").authenticated()
                 // Users — admin only
                 .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(ex -> ex
+                // Unauthenticated requests (missing/invalid/expired token) → 401 so the
+                // frontend Axios interceptor redirects to login instead of showing a raw 403.
+                .authenticationEntryPoint((req, res, e) -> {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.setContentType("application/json");
+                    res.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                    res.getWriter().write("{\"success\":false,\"data\":null,\"message\":\"Authentication required\"}");
+                })
+                // Authenticated user lacking the required role → 403 with a readable body
+                // (application-level 403s from UnauthorizedAccessException still flow through
+                //  GlobalExceptionHandler and are unaffected by this handler).
+                .accessDeniedHandler((req, res, e) -> {
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    res.setContentType("application/json");
+                    res.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                    res.getWriter().write("{\"success\":false,\"data\":null,\"message\":\"Access denied\"}");
+                })
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

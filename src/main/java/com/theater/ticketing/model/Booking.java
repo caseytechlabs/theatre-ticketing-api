@@ -16,7 +16,9 @@ public class Booking {
     private String id;
     private String voucherId;
     private String userId;
+    private String customerId;
     private BookingStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant voucherExpiresAt;
 }

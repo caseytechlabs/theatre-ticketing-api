@@ -16,11 +16,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-theater:
-  voucher:
-    pending-claim-ttl-seconds: 300
-    lock-ttl-seconds: 10
-
 jwt:
   secret: ${JWT_SECRET:theaterTicketingSystemSecretKeyForJWTSigningMustBe256BitsLong!}
   expiration: 86400000

@@ -6,7 +6,7 @@ import com.theater.ticketing.exception.VoucherNotFoundException;
 import com.theater.ticketing.model.Voucher;
 import com.theater.ticketing.model.VoucherStatus;
 import com.theater.ticketing.repository.VoucherRepository;
-import com.theater.ticketing.service.impl.VoucherServiceImpl;
+import com.theater.ticketing.service.VoucherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class VoucherServiceTest {
     private VoucherRepository voucherRepository;
 
     @InjectMocks
-    private VoucherServiceImpl voucherService;
+    private VoucherService voucherService;
 
     @BeforeEach
     void setUp() {

@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/bookings")
 @RequiredArgsConstructor
@@ -21,6 +23,18 @@ import org.springframework.web.bind.annotation.*;
 public class BookingController {
 
     private final BookingService bookingService;
+
+    @GetMapping
+    @Operation(summary = "List all bookings", description = "Returns all bookings (admin)")
+    public ResponseEntity<ApiResponse<List<BookingResponse>>> getAllBookings() {
+        return ResponseEntity.ok(ApiResponse.success(bookingService.getAllBookings(), "Bookings retrieved"));
+    }
+
+    @GetMapping("/my")
+    @Operation(summary = "Get my bookings", description = "Returns all bookings for the authenticated client")
+    public ResponseEntity<ApiResponse<List<BookingResponse>>> getMyBookings() {
+        return ResponseEntity.ok(ApiResponse.success(bookingService.getMyBookings(), "Bookings retrieved"));
+    }
 
     @PostMapping("/initiate")
     @Operation(summary = "Initiate a booking", description = "Reserves a voucher (AVAILABLE → PENDING_CLAIM) and creates a pending booking")
@@ -45,6 +59,13 @@ public class BookingController {
         BookingResponse response = bookingService.confirmBooking(request);
         String msg = request.isPaymentSuccess() ? "Booking confirmed" : "Booking cancelled, voucher released";
         return ResponseEntity.ok(ApiResponse.success(response, msg));
+    }
+
+    @DeleteMapping("/{bookingId}")
+    @Operation(summary = "Delete a booking", description = "Removes a booking record. If PENDING, the voucher is released first.")
+    public ResponseEntity<ApiResponse<Void>> deleteBooking(@PathVariable String bookingId) {
+        bookingService.deleteBooking(bookingId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Booking deleted"));
     }
 
     @GetMapping("/{bookingId}")

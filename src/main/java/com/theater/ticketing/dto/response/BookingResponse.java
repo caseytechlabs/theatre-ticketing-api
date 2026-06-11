@@ -20,4 +20,7 @@ public class BookingResponse {
     private BookingStatus status;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant voucherExpiresAt;
+    private Instant pendingExpiresAt;
+    private String voucherType;
 }

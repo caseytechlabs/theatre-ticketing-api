@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
+        // Skip filter for requests without a Bearer token (e.g. login, public endpoints)
         if (header == null || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
@@ -38,6 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7);
         try {
             String username = jwtService.extractUsername(token);
+            // Only populate the context if it hasn't been set already by a prior filter
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (jwtService.isTokenValid(token, userDetails)) {
@@ -48,7 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ignored) {
-            // Invalid token — continue unauthenticated
+            // Malformed or expired token — continue unauthenticated;
+            // SecurityConfig's AuthenticationEntryPoint will return 401.
         }
 
         chain.doFilter(request, response);

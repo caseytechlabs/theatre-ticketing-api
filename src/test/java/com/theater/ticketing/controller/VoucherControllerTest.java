@@ -81,16 +81,22 @@ class VoucherControllerTest {
     }
 
     @Test
-    void createVoucher_missingCustomerId_returns400() throws Exception {
-        String body = """
-                {"expiresAt": "2099-12-31T00:00:00Z"}
-                """;
+    void createVoucher_noCustomerId_returns201AsUniversalVoucher() throws Exception {
+        // customerId is optional — omitting it creates a universal voucher any client can claim
+        VoucherResponse resp = VoucherResponse.builder()
+                .id("v-universal")
+                .status(VoucherStatus.AVAILABLE)
+                .createdAt(Instant.now())
+                .expiresAt(Instant.parse("2099-12-31T00:00:00Z"))
+                .build();
+        when(voucherService.createVoucher(any())).thenReturn(resp);
 
         mockMvc.perform(post("/api/v1/vouchers")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false));
+                        .content("{\"expiresAt\": \"2099-12-31T00:00:00Z\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value("v-universal"));
     }
 
     @Test
